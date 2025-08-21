@@ -100,7 +100,7 @@ app.post("/data", async (req, res) => {
       });
     }
 
-    if (smoke > 150) { 
+    if (smoke > 10) { 
       const tokens = await db.collection("tokens").find({ deviceId }).toArray();
       tokens.forEach(t => sendPushNotification(t.token, `Smoke level: ${smoke} ppm`));
     }
