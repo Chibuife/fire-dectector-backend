@@ -7,7 +7,7 @@ const http = require("http");
 const WebSocket = require("ws");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const dbName = "esp32_data";
 
 app.use(bodyParser.json());
@@ -79,6 +79,12 @@ wss.on("connection", (ws) => {
     }
   });
 });
+
+
+app.get("/", (req, res) => {
+  res.send("Backend + WebSocket running ✅");
+});
+ 
 
 // Endpoint to receive data from ESP32
 app.post("/data", async (req, res) => {
