@@ -245,6 +245,7 @@ app.post("/register-token", async (req, res) => {
     return res.status(400).json({ message: "deviceId and token required" });
   }
 
+  console.log("token")
   try {
     // await db.collection("tokens").updateOne(
     //   { deviceId, token },
