@@ -247,12 +247,11 @@ app.post("/register-token", async (req, res) => {
 
   console.log("token")
   try {
-    // await db.collection("tokens").updateOne(
-    //   { deviceId, token },
-    //   { $set: { deviceId, token } },
-    //   { upsert: true }
-    // );
-    await db.collection("tokens").insertOne({ deviceId, token });
+    await db.collection("tokens").updateOne(
+      { deviceId, token },
+      { $set: { deviceId, token } },
+      { upsert: true }
+    );
 
     res.json({ message: "Token registered" });
   } catch (err) {
