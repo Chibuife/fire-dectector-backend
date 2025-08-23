@@ -160,6 +160,7 @@ const crons = require("./util/crons");
 const http = require("http");
 const WebSocket = require("ws");
 const { Expo } = require("expo-server-sdk");
+const { channel } = require("diagnostics_channel");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -194,9 +195,12 @@ async function sendPushNotification(expoPushToken, message) {
 
   const messages = [{
     to: expoPushToken,
-    sound: "default",
+    sound: "alarm",
     title: "🔥 Fire Alert",
     body: message,
+    priority:"high",
+    channelId:"alarm-channel",
+    collapseId:"alarm-alert",
     data: { smoke: true },
   }];
 
@@ -245,7 +249,6 @@ app.post("/register-token", async (req, res) => {
     return res.status(400).json({ message: "deviceId and token required" });
   }
 
-  console.log("token")
   try {
     await db.collection("tokens").updateOne(
       { deviceId, token },
