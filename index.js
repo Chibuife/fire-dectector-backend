@@ -204,6 +204,7 @@ async function sendPushNotification(expoPushToken, message) {
     data: { smoke: true },
   }];
 
+  console.log(message,"message")
   try {
     await expo.sendPushNotificationsAsync(messages);
     console.log(" Notification sent:", message);
