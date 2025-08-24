@@ -165,6 +165,8 @@ app.post("/data", async (req, res) => {
     //  Send push notification if smoke level high
     if (smoke > 10) {
       const tokens = await db.collection("tokens").find({ deviceId }).toArray();
+    console.log("Received token:", tokens);
+
       for (let t of tokens) {
         await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
       }
