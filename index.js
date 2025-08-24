@@ -170,6 +170,27 @@ app.post("/data", async (req, res) => {
       for (let t of tokens) {
         await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
       }
+
+      async function verifyFcmToken(token) {
+  try {
+    const response = await admin.messaging().send(
+      {
+        token,
+        notification: {
+          title: "Test",
+          body: "Just verifying token",
+        },
+      },
+      true // <-- dryRun = true
+    );
+
+    console.log("Valid token ✅", response);
+  } catch (error) {
+    console.error("Invalid token ❌", error);
+  }
+}
+
+verifyFcmToken("fQmWbTgBRgeHc0rKFBdLrr:APA91bFVF_Kaj-ue-x8zq80GMmvPa3XXY5oPmTVsjx-DDY8XBpXekqB3Yheg1HltXzjPSSH5XMP5DVZFB8wN8diCVy1LseL4Hx67b3-rdCQz3aBwoAYT7YY");
     }
 
     res.json({ message: " Data stored and processed" });
