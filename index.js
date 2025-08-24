@@ -70,24 +70,29 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-async function sendPushNotification(fcmToken, message) {
-  await admin.messaging().send({
-    token: "fQmWbTgBRgeHc0rKFBdLrr:APA91bFVF_Kaj-ue-x8zq80GMmvPa3XXY5oPmTVsjx-DDY8XBpXekqB3Yheg1HltXzjPSSH5XMP5DVZFB8wN8diCVy1LseL4Hx67b3-rdCQz3aBwoAYT7YY",
-    notification: {
-      title: "🔥 Fire",
-      body: message,
-    },
-    android: {
-      priority: "high",
+async function sendPushNotification(token) {
+  try {
+    const message = {
+      token: "fQmWbTgBRgeHc0rKFBdLrr:APA91bFVF_Kaj-ue-x8zq80GMmvPa3XXY5oPmTVsjx-DDY8XBpXekqB3Yheg1HltXzjPSSH5XMP5DVZFB8wN8diCVy1LseL4Hx67b3-rdCQz3aBwoAYT7YY",
       notification: {
-        channelId: "alarm-channel-v3",
-        sound: "alarm.mp3",
+        title: "🔥 Fire Alert",
+        body: "Smoke detected in your room!",
       },
-    },
-  });
+      data: {
+        deviceId: "ESP32-001",
+        status: "ALERT",
+      },
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("✅ Notification sent:", response);
+  } catch (error) {
+    console.error("❌ Error sending notification:", error);
+  }
 }
+
 async function verifyFcmToken(token) {
-  
+
   try {
     const response = await admin.messaging().send(
       {
