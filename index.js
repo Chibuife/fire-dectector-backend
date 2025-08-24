@@ -195,11 +195,11 @@ async function sendPushNotification(expoPushToken, message) {
 
   const messages = [{
     to: expoPushToken,
-    sound: "alarm",
+    sound: "default",
     title: "🔥 Fire Alert",
     body: message,
-    priority:"high",
-    channelId:"alarm-channel",
+    priority: "high",
+    channelId: "alarm-channel-v3",
     collapseId:"alarm-alert",
     data: { smoke: true },
   }];
