@@ -59,8 +59,15 @@ const clients = {};
 //     console.error(" Error sending notification:", err);
 //   }
 // }
+
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error("Missing FIREBASE_SERVICE_ACCOUNT in .env");
+}
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
 admin.initializeApp({
-  credential: admin.credential.cert(require("./detector-bed35-firebase-adminsdk-fbsvc-091fb823f0.json")),
+  credential: admin.credential.cert(serviceAccount),
 });
 
 async function sendPushNotification(fcmToken, message) {
@@ -74,7 +81,7 @@ async function sendPushNotification(fcmToken, message) {
       priority: "high",
       notification: {
         channelId: "alarm-channel-v3",
-        sound: "alarm.mp3", 
+        sound: "alarm.mp3",
       },
     },
   });
@@ -156,7 +163,7 @@ app.post("/data", async (req, res) => {
     }
 
     //  Send push notification if smoke level high
-    if (smoke > 10) { 
+    if (smoke > 10) {
       const tokens = await db.collection("tokens").find({ deviceId }).toArray();
       for (let t of tokens) {
         await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
