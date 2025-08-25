@@ -71,31 +71,45 @@ admin.initializeApp({
 });
 
 async function sendPushNotification(token) {
-  try {
-    const message = {
-      token: token,
-      notification: {
-        title: "🔥 Fire Alert",
-        body: "Smoke detected in your room!",
-      },
-      data: {
-        page: "/alert",
-        deviceId: "ESP32-001",
-        status: "ALERT",
-      },
-      android: {
-        notification: {
-          channelId: "alarm-channel-v3",   // 👈 must match exactly
-          sound: "alarm",                  // your custom sound
-          priority: "high",
-        },
-      },
-    };
+  // try {
+  //   const message = {
+  //     token: token,
+  //     notification: {
+  //       title: "🔥 Fire Alert",
+  //       body: "Smoke detected in your room!",
+  //     },
+  //     data: {
+  //       page: "/alert",
+  //       deviceId: "ESP32-001",
+  //       status: "ALERT",
+  //     },
+  //     android: {
+  //       notification: {
+  //         channelId: "alarm-channel-v3",   // 👈 must match exactly
+  //         sound: "alarm",                  // your custom sound
+  //         priority: "high",
+  //       },
+  //     },
+  //   };
 
-    const response = await admin.messaging().send(message);
-    console.log("✅ Notification sent:", response);
+  //   const response = await admin.messaging().send(message);
+  //   console.log("✅ Notification sent:", response);
+  // } catch (error) {
+  //   console.error("❌ Error sending notification:", error);
+  // }
+  try {
+    await admin.messaging().send({
+      token,
+      notification: { title: "Fire Alert", body: "Smoke detected!" },
+    });
   } catch (error) {
-    console.error("❌ Error sending notification:", error);
+    if (error.code === "messaging/registration-token-not-registered") {
+      console.log("❌ Removing invalid token:", token);
+      // Remove from DB so you don’t send again
+      await db.tokens.delete(token);
+    } else {
+      console.error("Error sending notification:", error);
+    }
   }
 }
 
