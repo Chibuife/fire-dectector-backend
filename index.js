@@ -73,7 +73,7 @@ admin.initializeApp({
 async function sendPushNotification(token) {
   try {
     const message = {
-      token: "cvzVI73lQb-GlAjV9Z8tIH:APA91bGqsWA1636m8fyO3LM7sFkIWj9btn5LNuKoLZ8Kxz_oVzwxwwsu_Naspif9Qn8s-v5g0yD6AaxoEGzIwmEvs4dFUA_u5hT34d8t5prBckR5TWJ-744",
+      token: token,
       notification: {
         title: "🔥 Fire Alert",
         body: "Smoke detected in your room!",
@@ -193,7 +193,6 @@ app.post("/data", async (req, res) => {
         }
       });
     }
-    verifyFcmToken("cvzVI73lQb-GlAjV9Z8tIH:APA91bGqsWA1636m8fyO3LM7sFkIWj9btn5LNuKoLZ8Kxz_oVzwxwwsu_Naspif9Qn8s-v5g0yD6AaxoEGzIwmEvs4dFUA_u5hT34d8t5prBckR5TWJ-744");
 
     //  Send push notification if smoke level high
     if (smoke > 10) {
@@ -201,6 +200,7 @@ app.post("/data", async (req, res) => {
       console.log("Received token:", tokens);
 
       for (let t of tokens) {
+        verifyFcmToken(t.token);
         await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
       }
 
