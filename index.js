@@ -201,6 +201,7 @@ app.post("/data", async (req, res) => {
 
       for (let t of tokens) {
         verifyFcmToken(t.token);
+        console.log("Sending notification to token:", t.token);
         await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
       }
 
