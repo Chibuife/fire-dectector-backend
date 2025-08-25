@@ -115,7 +115,7 @@ async function verifyFcmToken(token) {
 
     console.log("Valid token ✅", response);
   } catch (error) {
-    console.error("Invalid token ❌", error);
+    console.error("Invalid token ❌", error, token);
   }
 }
 
