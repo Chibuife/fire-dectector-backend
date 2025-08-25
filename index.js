@@ -71,45 +71,33 @@ admin.initializeApp({
 });
 
 async function sendPushNotification(token) {
-  // try {
-  //   const message = {
-  //     token: token,
-  //     notification: {
-  //       title: "🔥 Fire Alert",
-  //       body: "Smoke detected in your room!",
-  //     },
-  //     data: {
-  //       page: "/alert",
-  //       deviceId: "ESP32-001",
-  //       status: "ALERT",
-  //     },
-  //     android: {
-  //       notification: {
-  //         channelId: "alarm-channel-v3",   // 👈 must match exactly
-  //         sound: "alarm",                  // your custom sound
-  //         priority: "high",
-  //       },
-  //     },
-  //   };
-
-  //   const response = await admin.messaging().send(message);
-  //   console.log("✅ Notification sent:", response);
-  // } catch (error) {
-  //   console.error("❌ Error sending notification:", error);
-  // }
   try {
-    await admin.messaging().send({
-      token,
-      notification: { title: "Fire Alert", body: "Smoke detected!" },
-    });
+    const message = {
+      token: token,
+      notification: {
+        title: "🔥 Fire Alert",
+        body: "Smoke detected in your room!",
+      },
+      data: {
+        page: "/alert",
+        deviceId: "ESP32-001",
+        status: "ALERT",
+      },
+      android: {
+        notification: {
+          channelId: "alarm-channel-v3",   // 👈 must match exactly
+          sound: "alarm",                  // your custom sound
+          priority: "high",
+        },
+      },
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("✅ Notification sent:", response);
   } catch (error) {
-    if (error.code === "messaging/registration-token-not-registered") {
-      await db.collection("tokens").deleteOne({ token: token });
-      console.log("❌ Removed invalid token from DB:", token);
-    } else {
-      console.error("Error sending notification:", error);
-    }
+    console.error("❌ Error sending notification:", error);
   }
+
 }
 
 async function verifyFcmToken(token) {
