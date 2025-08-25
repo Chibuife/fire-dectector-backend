@@ -79,7 +79,7 @@ async function sendPushNotification(token) {
         body: "Smoke detected in your room!",
       },
       data: {
-        page: "/alert",
+        // page: "/alert",
         deviceId: "ESP32-001",
         status: "ALERT",
       },
