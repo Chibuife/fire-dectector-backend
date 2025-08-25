@@ -73,13 +73,13 @@ admin.initializeApp({
 async function sendPushNotification(token) {
   try {
     const message = {
-      token: "fQmWbTgBRgeHc0rKFBdLrr:APA91bFVF_Kaj-ue-x8zq80GMmvPa3XXY5oPmTVsjx-DDY8XBpXekqB3Yheg1HltXzjPSSH5XMP5DVZFB8wN8diCVy1LseL4Hx67b3-rdCQz3aBwoAYT7YY",
+      token: "cvzVI73lQb-GlAjV9Z8tIH:APA91bGqsWA1636m8fyO3LM7sFkIWj9btn5LNuKoLZ8Kxz_oVzwxwwsu_Naspif9Qn8s-v5g0yD6AaxoEGzIwmEvs4dFUA_u5hT34d8t5prBckR5TWJ-744",
       notification: {
         title: "🔥 Fire Alert",
         body: "Smoke detected in your room!",
       },
       data: {
-        // page: "/alert",
+        page: "/alert",
         deviceId: "ESP32-001",
         status: "ALERT",
       },
@@ -119,7 +119,7 @@ async function verifyFcmToken(token) {
   }
 }
 
-verifyFcmToken("fQmWbTgBRgeHc0rKFBdLrr:APA91bFVF_Kaj-ue-x8zq80GMmvPa3XXY5oPmTVsjx-DDY8XBpXekqB3Yheg1HltXzjPSSH5XMP5DVZFB8wN8diCVy1LseL4Hx67b3-rdCQz3aBwoAYT7YY");
+verifyFcmToken("cvzVI73lQb-GlAjV9Z8tIH:APA91bGqsWA1636m8fyO3LM7sFkIWj9btn5LNuKoLZ8Kxz_oVzwxwwsu_Naspif9Qn8s-v5g0yD6AaxoEGzIwmEvs4dFUA_u5hT34d8t5prBckR5TWJ-744");
 // Handle WebSocket connections
 wss.on("connection", (ws) => {
   console.log("Client connected via WebSocket");
