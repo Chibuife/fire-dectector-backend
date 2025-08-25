@@ -77,10 +77,18 @@ async function sendPushNotification(token) {
       notification: {
         title: "🔥 Fire Alert",
         body: "Smoke detected in your room!",
+        data: { page: "/alert" }
       },
       data: {
         deviceId: "ESP32-001",
         status: "ALERT",
+      },
+      android: {
+        notification: {
+          channelId: "alarm-channel-v3",   // 👈 must match exactly
+          sound: "alarm",                  // your custom sound
+          priority: "high",
+        },
       },
     };
 
