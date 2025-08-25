@@ -104,9 +104,8 @@ async function sendPushNotification(token) {
     });
   } catch (error) {
     if (error.code === "messaging/registration-token-not-registered") {
-      console.log("❌ Removing invalid token:", token);
-      // Remove from DB so you don’t send again
-      await db.tokens.delete(token);
+      await db.collection("tokens").deleteOne({ token: token });
+      console.log("❌ Removed invalid token from DB:", token);
     } else {
       console.error("Error sending notification:", error);
     }
