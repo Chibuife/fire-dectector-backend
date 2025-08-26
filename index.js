@@ -151,7 +151,8 @@ wss.on("connection", (ws) => {
 
 //  Register device token
 app.post("/register-token", async (req, res) => {
-  const { deviceId, token } = req.body;
+  const { deviceId, token, smokeThreshold, tempThreshold,
+    notificationsEnabled, } = req.body;
 
   if (!deviceId || !token) {
     return res.status(400).json({ message: "deviceId and token required" });
@@ -160,7 +161,12 @@ app.post("/register-token", async (req, res) => {
   try {
     await db.collection("tokens").updateOne(
       { deviceId, token },
-      { $set: { deviceId, token } },
+      {
+        $set: {
+          deviceId, token, smokeThreshold, tempThreshold,
+          notificationsEnabled,
+        }
+      },
       { upsert: true }
     );
 
@@ -168,6 +174,23 @@ app.post("/register-token", async (req, res) => {
   } catch (err) {
     console.error(" Error saving token:", err);
     res.status(500).json({ message: "Failed to save token" });
+  }
+});
+
+app.get("/settings/:deviceId", async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+
+    const settings = await db.collection("tokens").findOne({ deviceId });
+
+    if (!settings) {
+      return res.status(404).json({ message: "Settings not found" });
+    }
+
+    res.json(settings);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    res.status(500).json({ message: "Failed to fetch settings" });
   }
 });
 
