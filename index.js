@@ -186,7 +186,7 @@ app.get("/settings/:deviceId", async (req, res) => {
     if (!settings) {
       return res.status(404).json({ message: "Settings not found" });
     }
-
+    console.log("Fetched settings:", settings);
     res.json(settings);
   } catch (err) {
     console.error("Fetch error:", err);
