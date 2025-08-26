@@ -219,20 +219,46 @@ app.post("/data", async (req, res) => {
     }
 
     //  Send push notification if smoke level high
-    if (smoke > 10) {
-      const tokens = await db.collection("tokens").find({ deviceId }).toArray();
-      console.log("Received token:", tokens);
+    // if (smoke > 10) {
+    //   const tokens = await db.collection("tokens").find({ deviceId }).toArray();
+    //   console.log("Received token:", tokens);
+    //   for (let t of tokens) {
+    //     verifyFcmToken(t.token);
+    //     console.log("Sending notification to token:", t.token);
+    //     await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
+    //   }
+    // }
 
-      for (let t of tokens) {
-        verifyFcmToken(t.token);
-        console.log("Sending notification to token:", t.token);
-        await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
-      }
 
+    const settings = await db.collection("tokens").findOne({ deviceId });
 
+    if (!settings) {
+      return res.status(404).json({ message: "No settings found for this device" });
     }
 
-    res.json({ message: " Data stored and processed" });
+    const { token, smokeThreshold, tempThreshold, notificationsEnabled } = settings;
+
+    console.log("Settings:", settings);
+
+    // Check if notifications are enabled
+    if (!notificationsEnabled) {
+      console.log("Notifications disabled for device:", deviceId);
+      return res.json({ message: "Data stored, no notifications" });
+    }
+
+    // Trigger notifications based on thresholds
+    if (smoke > Number(smokeThreshold)) {
+      console.log("⚠️ Smoke exceeded threshold:", smoke);
+      await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
+    }
+
+    if (temp > Number(tempThreshold)) {
+      console.log("⚠️ Temperature exceeded threshold:", temp);
+      await sendPushNotification(token, `🔥 High temperature detected: ${temp}°C`);
+    }
+
+    return res.json({ message: "Data processed" });
+    // res.json({ message: " Data stored and processed" });
   } catch (err) {
     console.error(" Error saving data:", err);
     res.status(500).json({ message: "Failed to store data" });
