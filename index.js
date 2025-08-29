@@ -252,9 +252,9 @@ app.post("/data", async (req, res) => {
       await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
     }
 
-    if (temp > Number(tempThreshold)) {
-      console.log("⚠️ Temperature exceeded threshold:", temp);
-      await sendPushNotification(token, `🔥 High temperature detected: ${temp}°C`);
+    if (temperature > Number(tempThreshold)) {
+      console.log("⚠️ Temperature exceeded threshold:", temperature);
+      await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
     }
 
     return res.json({ message: "Data processed" });
