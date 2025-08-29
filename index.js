@@ -230,34 +230,34 @@ app.post("/data", async (req, res) => {
     // }
 
 
-    const settings = await db.collection("tokens").findOne({ deviceId });
+    const settingsList = await db.collection("tokens").find({ deviceId }).toArray();
 
-    if (!settings) {
-      return res.status(404).json({ message: "No settings found for this device" });
-    }
+if (!settingsList.length) {
+  return res.status(404).json({ message: "No settings found for this device" });
+}
 
-    const { token, smokeThreshold, tempThreshold, notificationsEnabled } = settings;
+for (const settings of settingsList) {
+  const { token, smokeThreshold, tempThreshold, notificationsEnabled } = settings;
 
-    console.log("Settings:", settings);
+  console.log("Settings:", settings);
 
-    // Check if notifications are enabled
-    if (!notificationsEnabled) {
-      console.log("Notifications disabled for device:", deviceId);
-      return res.json({ message: "Data stored, no notifications" });
-    }
+  if (!notificationsEnabled) {
+    console.log("Notifications disabled for device:", deviceId);
+    continue; // skip to next device
+  }
 
-    // Trigger notifications based on thresholds
-    if (smoke > Number(smokeThreshold)) {
-      console.log("⚠️ Smoke exceeded threshold:", smoke);
-      await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
-    }
+  if (smoke > Number(smokeThreshold)) {
+    console.log("⚠️ Smoke exceeded threshold:", smoke);
+    await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
+  }
 
-    if (temperature > Number(tempThreshold)) {
-      console.log("⚠️ Temperature exceeded threshold:", temperature);
-      await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
-    }
+  if (temperature > Number(tempThreshold)) {
+    console.log("⚠️ Temperature exceeded threshold:", temperature);
+    await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
+  }
+}
 
-    return res.json({ message: "Data processed" });
+return res.json({ message: "Data processed for all matching devices" });
     // res.json({ message: " Data stored and processed" });
   } catch (err) {
     console.error(" Error saving data:", err);
