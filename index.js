@@ -321,14 +321,32 @@ app.post("/data", async (req, res) => {
 
 
 // Fetch historical data
+// app.get("/data", async (req, res) => {
+//   if (!db) return res.status(500).json({ message: "Database not connected" });
+
+//   try {
+//     const sensors = await db.collection("sensors").find({}).toArray();
+//     res.json(sensors);
+//   } catch (err) {
+//     console.error("Error fetching data:", err);
+//     res.status(500).json({ message: "Failed to fetch data" });
+//   }
+// });
 app.get("/data", async (req, res) => {
   if (!db) return res.status(500).json({ message: "Database not connected" });
 
+  const { deviceId } = req.query; 
+
+  if (!deviceId) return res.status(400).json({ message: "deviceId is required" });
+
   try {
-    const sensors = await db.collection("sensors").find({}).toArray();
+    const sensors = await db.collection("sensors")
+      .find({ deviceId })
+      .toArray();
+
     res.json(sensors);
   } catch (err) {
-    console.error("Error fetching data:", err);
+    console.error("❌ Error fetching data:", err);
     res.status(500).json({ message: "Failed to fetch data" });
   }
 });
