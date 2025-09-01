@@ -265,36 +265,39 @@ app.get("/", (req, res) => {
 //     res.status(500).json({ message: "Failed to store data" });
 //   }
 // });
+
 app.post("/data", async (req, res) => {
-  const { deviceId: senderId, temperature, smoke } = req.body;
+  const { deviceId, temperature, smoke } = req.body;
 
   if (!db) return res.status(500).json({ message: "Database not connected" });
 
-  const data = { deviceId: senderId, temperature, smoke, timestamp: new Date() };
+  const data = { deviceId, temperature, smoke, timestamp: new Date() };
 
   try {
+    // 1️⃣ Save data to the sensors collection
     await db.collection("sensors").insertOne(data);
 
-    // Emit to subscribed WebSocket clients for the sender
-    if (clients[senderId]) {
-      clients[senderId].forEach(ws => {
+    // 2️⃣ Emit to WebSocket clients for this device
+    if (clients[deviceId]) {
+      clients[deviceId].forEach(ws => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(data));
         }
       });
     }
 
-    // Fetch devices with notifications enabled, excluding the sender
-    const devices = await db.collection("tokens")
-      .find({ notificationsEnabled: true, deviceId: { $ne: senderId } })
+    // 3️⃣ Fetch all entries for this device
+    const deviceEntries = await db.collection("tokens")
+      .find({ deviceId, notificationsEnabled: true })
       .toArray();
 
-    if (!devices.length) {
-      return res.json({ message: "Data stored, no other devices to notify" });
+    if (!deviceEntries.length) {
+      return res.json({ message: "Data stored, notifications disabled for this device" });
     }
 
-    for (const device of devices) {
-      const { token, smokeThreshold, tempThreshold, deviceId } = device;
+    // 4️⃣ Loop through all device entries and send notifications
+    for (const device of deviceEntries) {
+      const { token, smokeThreshold, tempThreshold } = device;
 
       if (smoke > Number(smokeThreshold)) {
         console.log(`⚠️ Smoke exceeded threshold for device ${deviceId}: ${smoke}`);
@@ -307,12 +310,14 @@ app.post("/data", async (req, res) => {
       }
     }
 
-    return res.json({ message: "Data processed and notifications sent to other devices" });
+    return res.json({ message: "Data processed and notifications sent to sender device entries" });
+
   } catch (err) {
     console.error("❌ Error saving data:", err);
     res.status(500).json({ message: "Failed to store data" });
   }
 });
+
 
 
 // Fetch historical data
