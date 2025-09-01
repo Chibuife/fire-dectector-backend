@@ -159,13 +159,32 @@ app.post("/register-token", async (req, res) => {
   }
 
   try {
+    // await db.collection("tokens").updateOne(
+    //   { deviceId, token },
+    //   {
+    //     $set: {
+    //       deviceId, token, smokeThreshold, tempThreshold,
+    //       notificationsEnabled,
+    //     }
+    //   },
+    //   { upsert: true }
+    // );
+
+
+    await db.collection("tokens").updateMany(
+      { token, deviceId: { $ne: deviceId } },
+      { $set: { deviceId } }
+    );
+
     await db.collection("tokens").updateOne(
-      { deviceId, token },
+      { deviceId },
       {
         $set: {
-          deviceId, token, smokeThreshold, tempThreshold,
+          token,
+          smokeThreshold,
+          tempThreshold,
           notificationsEnabled,
-        }
+        },
       },
       { upsert: true }
     );
