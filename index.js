@@ -218,46 +218,84 @@ app.get("/", (req, res) => {
 });
 
 // Endpoint to receive data from ESP32
+// app.post("/data", async (req, res) => {
+//   const { deviceId, temperature, smoke } = req.body;
+
+//   if (!db) return res.status(500).json({ message: "Database not connected" });
+
+//   const data = { deviceId, temperature, smoke, timestamp: new Date() };
+
+//   try {
+//     await db.collection("sensors").insertOne(data);
+
+//     // Emit to subscribed WebSocket clients
+//     if (clients[deviceId]) {
+//       clients[deviceId].forEach(ws => {
+//         if (ws.readyState === WebSocket.OPEN) {
+//           ws.send(JSON.stringify(data));
+//         }
+//       });
+//     }
+
+//     const devices = await db.collection("tokens").find({ notificationsEnabled: true }).toArray();
+
+//     if (!devices.length) {
+//       return res.json({ message: "No devices to notify" });
+//     }
+
+//     for (const device of devices) {
+//       const { token, smokeThreshold, tempThreshold, deviceId } = device;
+
+//       // Check thresholds
+//       if (smoke > Number(smokeThreshold)) {
+//         console.log(`⚠️ Smoke exceeded threshold for device ${deviceId}: ${smoke}`);
+//         await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
+//       }
+
+//       if (temperature > Number(tempThreshold)) {
+//         console.log(`⚠️ Temperature exceeded threshold for device ${deviceId}: ${temperature}`);
+//         await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
+//       }
+//     }
+
+//     return res.json({ message: "Data processed and notifications sent" });
+//     // res.json({ message: " Data stored and processed" });
+//   } catch (err) {
+//     console.error(" Error saving data:", err);
+//     res.status(500).json({ message: "Failed to store data" });
+//   }
+// });
 app.post("/data", async (req, res) => {
-  const { deviceId, temperature, smoke } = req.body;
+  const { deviceId: senderId, temperature, smoke } = req.body;
 
   if (!db) return res.status(500).json({ message: "Database not connected" });
 
-  const data = { deviceId, temperature, smoke, timestamp: new Date() };
+  const data = { deviceId: senderId, temperature, smoke, timestamp: new Date() };
 
   try {
     await db.collection("sensors").insertOne(data);
 
-    // Emit to subscribed WebSocket clients
-    if (clients[deviceId]) {
-      clients[deviceId].forEach(ws => {
+    // Emit to subscribed WebSocket clients for the sender
+    if (clients[senderId]) {
+      clients[senderId].forEach(ws => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(data));
         }
       });
     }
 
-    //  Send push notification if smoke level high
-    // if (smoke > 10) {
-    //   const tokens = await db.collection("tokens").find({ deviceId }).toArray();
-    //   console.log("Received token:", tokens);
-    //   for (let t of tokens) {
-    //     verifyFcmToken(t.token);
-    //     console.log("Sending notification to token:", t.token);
-    //     await sendPushNotification(t.token, ` Smoke level: ${smoke} ppm`);
-    //   }
-    // }
-
-    const devices = await db.collection("tokens").find({ notificationsEnabled: true }).toArray();
+    // Fetch devices with notifications enabled, excluding the sender
+    const devices = await db.collection("tokens")
+      .find({ notificationsEnabled: true, deviceId: { $ne: senderId } })
+      .toArray();
 
     if (!devices.length) {
-      return res.json({ message: "No devices to notify" });
+      return res.json({ message: "Data stored, no other devices to notify" });
     }
 
     for (const device of devices) {
       const { token, smokeThreshold, tempThreshold, deviceId } = device;
 
-      // Check thresholds
       if (smoke > Number(smokeThreshold)) {
         console.log(`⚠️ Smoke exceeded threshold for device ${deviceId}: ${smoke}`);
         await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
@@ -269,13 +307,13 @@ app.post("/data", async (req, res) => {
       }
     }
 
-    return res.json({ message: "Data processed and notifications sent" });
-    // res.json({ message: " Data stored and processed" });
+    return res.json({ message: "Data processed and notifications sent to other devices" });
   } catch (err) {
-    console.error(" Error saving data:", err);
+    console.error("❌ Error saving data:", err);
     res.status(500).json({ message: "Failed to store data" });
   }
 });
+
 
 // Fetch historical data
 app.get("/data", async (req, res) => {
