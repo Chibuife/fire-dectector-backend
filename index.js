@@ -34,32 +34,6 @@ const wss = new WebSocket.Server({ server });
 // Map deviceId -> array of connected WebSocket clients
 const clients = {};
 
-// async function sendPushNotification(expoPushToken, message) {
-//   if (!Expo.isExpoPushToken(expoPushToken)) {
-//     console.error(` Invalid Expo push token: ${expoPushToken}`);
-//     return;
-//   }
-
-//   const messages = [{
-//     to: expoPushToken,
-//     sound: "default",
-//     title: "🔥 Fire",
-//     body: message,
-//     priority: "high",
-//     channelId: "alarm-channel-v3",
-//     collapseId:"alarm-alert",
-//     data: { smoke: true },
-//   }];
-
-//   console.log(message,"message")
-//   try {
-//     await expo.sendPushNotificationsAsync(messages);
-//     console.log(" Notification sent:", message);
-//   } catch (err) {
-//     console.error(" Error sending notification:", err);
-//   }
-// }
-
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
   throw new Error("Missing FIREBASE_SERVICE_ACCOUNT in .env");
 }
@@ -152,7 +126,8 @@ wss.on("connection", (ws) => {
 //  Register device token
 app.post("/register-token", async (req, res) => {
   const { deviceId, token, smokeThreshold, tempThreshold,
-    notificationsEnabled, } = req.body;
+    notificationsEnabled,  wifiName,
+          wifiPassword, } = req.body;
 
   if (!deviceId || !token) {
     return res.status(400).json({ message: "deviceId and token required" });
@@ -183,7 +158,9 @@ app.post("/register-token", async (req, res) => {
           token,
           smokeThreshold,
           tempThreshold,
-          notificationsEnabled,
+          notificationsEnabled,  
+          wifiName,
+          wifiPassword,
         },
       },
       { upsert: true }
@@ -217,54 +194,6 @@ app.get("/", (req, res) => {
   res.send("Backend + WebSocket running ");
 });
 
-// Endpoint to receive data from ESP32
-// app.post("/data", async (req, res) => {
-//   const { deviceId, temperature, smoke } = req.body;
-
-//   if (!db) return res.status(500).json({ message: "Database not connected" });
-
-//   const data = { deviceId, temperature, smoke, timestamp: new Date() };
-
-//   try {
-//     await db.collection("sensors").insertOne(data);
-
-//     // Emit to subscribed WebSocket clients
-//     if (clients[deviceId]) {
-//       clients[deviceId].forEach(ws => {
-//         if (ws.readyState === WebSocket.OPEN) {
-//           ws.send(JSON.stringify(data));
-//         }
-//       });
-//     }
-
-//     const devices = await db.collection("tokens").find({ notificationsEnabled: true }).toArray();
-
-//     if (!devices.length) {
-//       return res.json({ message: "No devices to notify" });
-//     }
-
-//     for (const device of devices) {
-//       const { token, smokeThreshold, tempThreshold, deviceId } = device;
-
-//       // Check thresholds
-//       if (smoke > Number(smokeThreshold)) {
-//         console.log(`⚠️ Smoke exceeded threshold for device ${deviceId}: ${smoke}`);
-//         await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
-//       }
-
-//       if (temperature > Number(tempThreshold)) {
-//         console.log(`⚠️ Temperature exceeded threshold for device ${deviceId}: ${temperature}`);
-//         await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
-//       }
-//     }
-
-//     return res.json({ message: "Data processed and notifications sent" });
-//     // res.json({ message: " Data stored and processed" });
-//   } catch (err) {
-//     console.error(" Error saving data:", err);
-//     res.status(500).json({ message: "Failed to store data" });
-//   }
-// });
 
 app.post("/data", async (req, res) => {
   const { deviceId, temperature, smoke } = req.body;
@@ -320,18 +249,7 @@ app.post("/data", async (req, res) => {
 
 
 
-// Fetch historical data
-// app.get("/data", async (req, res) => {
-//   if (!db) return res.status(500).json({ message: "Database not connected" });
 
-//   try {
-//     const sensors = await db.collection("sensors").find({}).toArray();
-//     res.json(sensors);
-//   } catch (err) {
-//     console.error("Error fetching data:", err);
-//     res.status(500).json({ message: "Failed to fetch data" });
-//   }
-// });
 app.get("/data", async (req, res) => {
   if (!db) return res.status(500).json({ message: "Database not connected" });
 
