@@ -248,35 +248,28 @@ app.post("/data", async (req, res) => {
     //   }
     // }
 
+    const devices = await db.collection("tokens").find({ notificationsEnabled: true }).toArray();
 
-    const settings = await db.collection("tokens").findOne({ deviceId });
-
-    if (!settings) {
-      return res.status(404).json({ message: "No settings found for this device" });
+    if (!devices.length) {
+      return res.json({ message: "No devices to notify" });
     }
 
-    const { token, smokeThreshold, tempThreshold, notificationsEnabled } = settings;
+    for (const device of devices) {
+      const { token, smokeThreshold, tempThreshold, deviceId } = device;
 
-    console.log("Settings:", settings);
+      // Check thresholds
+      if (smoke > Number(smokeThreshold)) {
+        console.log(`⚠️ Smoke exceeded threshold for device ${deviceId}: ${smoke}`);
+        await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
+      }
 
-    // Check if notifications are enabled
-    if (!notificationsEnabled) {
-      console.log("Notifications disabled for device:", deviceId);
-      return res.json({ message: "Data stored, no notifications" });
+      if (temperature > Number(tempThreshold)) {
+        console.log(`⚠️ Temperature exceeded threshold for device ${deviceId}: ${temperature}`);
+        await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
+      }
     }
 
-    // Trigger notifications based on thresholds
-    if (smoke > Number(smokeThreshold)) {
-      console.log("⚠️ Smoke exceeded threshold:", smoke);
-      await sendPushNotification(token, `🚨 High smoke detected: ${smoke} ppm`);
-    }
-
-    if (temperature > Number(tempThreshold)) {
-      console.log("⚠️ Temperature exceeded threshold:", temperature);
-      await sendPushNotification(token, `🔥 High temperature detected: ${temperature}°C`);
-    }
-
-    return res.json({ message: "Data processed" });
+    return res.json({ message: "Data processed and notifications sent" });
     // res.json({ message: " Data stored and processed" });
   } catch (err) {
     console.error(" Error saving data:", err);
